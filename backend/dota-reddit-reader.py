@@ -10,7 +10,7 @@ from flask_cors import CORS
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # Allow frontend requests
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 # Initialize Reddit API client
 reddit = praw.Reddit(
