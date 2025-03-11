@@ -105,7 +105,7 @@ const props = defineProps({
 
 const { post } = toRefs(props);
 
-const MAX_LENGTH = 300; // Set character limit
+const MAX_LENGTH = 400; // Set character limit
 
 // ✅ Function to truncate text safely
 const truncatePostText = (text, limit) => {
