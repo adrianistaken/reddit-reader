@@ -19,7 +19,7 @@ onMounted(fetchPosts);
 </script>
 
 <template>
-    <div class="text-center mx-10">
+    <div class="text-center m-auto max-w-5xl md:w-3xl w-full">
         <h1>📌 Dota 2 Reddit Posts</h1>
 
         <div class="flex flex-col">

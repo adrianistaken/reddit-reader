@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="card bg-base-300 shadow-sm m-auto my-6 text-left">
-            <div class="card-body">
+            <div class="card-body gap-3">
                 <!-- Post author -->
                 <div class="flex items-center gap-2">
                     <a :href="`https://reddit.com/user/${post.author_name}`" target="_blank">
@@ -25,16 +25,46 @@
 
                 <!-- Post content -->
                 <div class="relative w-full flex justify-center items-center overflow-hidden rounded-md">
-                    <!-- Main Image -->
-                    <img :src="post.url" class="relative z-10 max-w-full h-auto object-cover" />
 
-                    <!-- Left blurred extension -->
-                    <div class="absolute left-0 top-0 h-full w-1/4 bg-no-repeat bg-left transform scale-x-[-1] blur-xl opacity-80"
-                        :style="{ backgroundImage: `url(${post.url})` }"></div>
+                    <!-- ✅ Image Post with Blurred Extensions -->
+                    <template v-if="post.media_type === 'image'">
+                        <img :src="post.media_url" class="relative z-10 max-w-full h-auto object-cover" />
 
-                    <!-- Right blurred extension -->
-                    <div class="absolute right-0 top-0 h-full w-1/4 bg-no-repeat bg-right blur-xl opacity-80"
-                        :style="{ backgroundImage: `url(${post.url})` }"></div>
+                        <!-- Left blurred extension -->
+                        <div class="absolute left-0 top-0 h-full w-1/4 bg-no-repeat bg-left transform scale-x-[-1] blur-xl opacity-80"
+                            :style="{ backgroundImage: `url(${post.media_url})` }"></div>
+
+                        <!-- Right blurred extension -->
+                        <div class="absolute right-0 top-0 h-full w-1/4 bg-no-repeat bg-right blur-xl opacity-80"
+                            :style="{ backgroundImage: `url(${post.media_url})` }"></div>
+                    </template>
+
+                    <!-- ✅ Reddit Video -->
+                    <video v-else-if="post.media_type === 'video'" :src="post.media_url" controls
+                        class="max-w-full h-auto rounded-md"></video>
+
+                    <!-- ✅ YouTube Video Embed -->
+                    <iframe v-else-if="post.media_type === 'youtube'"
+                        :src="post.media_url.replace('watch?v=', 'embed/')" class="max-w-full h-auto rounded-md"
+                        frameborder="0" allowfullscreen></iframe>
+
+                    <!-- ✅ External Image (Imgur, Gfycat, etc.) -->
+                    <img v-else-if="post.media_type === 'external_image'" :src="post.media_url"
+                        class="max-w-full h-auto object-cover rounded-md" />
+
+                    <!-- ✅ Text Post -->
+                    <p v-else-if="post.media_type === 'text'" class="py-4 rounded-md">{{ post.text_content }}
+                    </p>
+
+                    <!-- ✅ External Link -->
+                    <!-- <a v-else :href="post.media_url" target="_blank"
+                        class="py-4 bg-blue-500 text-white font-bold rounded-md hover:bg-blue-700">
+                        View Content
+                    </a> -->
+                    <a v-else :href="post.media_url" target="_blank">
+                        <button class="btn btn-warning">View Post</button>
+                    </a>
+
                 </div>
 
 

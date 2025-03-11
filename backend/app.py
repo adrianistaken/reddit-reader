@@ -56,6 +56,53 @@ def time_ago(created_utc):
     else:
         return f"{diff.days // 365} years ago"
 
+def determine_media_type(submission):
+    """
+    Determines if the Reddit post contains an image, video, or is just text.
+    """
+    url = submission.url
+
+    # ✅ Check if it's a Reddit-hosted video
+    if submission.is_video:
+        return {
+            "media_type": "video",
+            "media_url": submission.media["reddit_video"]["fallback_url"] if submission.media else None
+        }
+
+    # ✅ Check if it's an image
+    image_extensions = (".jpg", ".png", ".gif", ".jpeg", ".webp")
+    if url.endswith(image_extensions):
+        return {
+            "media_type": "image",
+            "media_url": url
+        }
+
+    # ✅ Check if it's an embedded YouTube, Imgur, or other external media
+    if "youtube.com" in url or "youtu.be" in url:
+        return {
+            "media_type": "youtube",
+            "media_url": url
+        }
+    if "imgur.com" in url or "gfycat.com" in url:
+        return {
+            "media_type": "external_image",
+            "media_url": url
+        }
+
+    # ✅ If none of the above, it's a text post or external link
+    if submission.is_self:
+        return {
+            "media_type": "text",
+            "media_url": None,
+            "text_content": submission.selftext
+        }
+    
+    return {
+        "media_type": "link",
+        "media_url": url
+    }
+
+
 def fetch_relevant_posts():
     """
     Fetches posts from r/DotA2 with relevant flairs and displays them.
@@ -66,17 +113,21 @@ def fetch_relevant_posts():
     print(f"\n🔎 Fetching relevant posts from r/{SUBREDDIT_NAME}...")
 
     for submission in subreddit.top(time_filter="day", limit=POST_LIMIT * 2):  # Fetch more posts to filter down
+        media_info = determine_media_type(submission)
+
         if submission.link_flair_text and submission.link_flair_text in DESIRED_FLAIRS:
             useful_posts.append({
-                "author_name": submission.author.name,
+                "author_name": submission.author.name if submission.author.name else "Unknown",
                 "author_image": submission.author.icon_img,
                 "title": submission.title,
                 "flair": submission.link_flair_text,
                 "created_at": time_ago(submission.created_utc),
+                "media_type": media_info["media_type"],
+                "media_url": media_info["media_url"],
+                "text_content": media_info.get("text_content", ""),
                 "url": submission.url,
                 "score": submission.score,
                 "comments": submission.num_comments,
-                "selftext": submission.selftext,
             })
 
         if len(useful_posts) >= POST_LIMIT:
