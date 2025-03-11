@@ -24,7 +24,7 @@ print("✅ Reddit API Connected:", reddit.read_only)
 # 🎯 Define subreddit and filters
 SUBREDDIT_NAME = "dota2"
 # DESIRED_FLAIRS = {"Article", "Clips", "Bug", "Discussion", "Fluff"}
-DESIRED_FLAIRS = {"Article", "Fluff"}
+DESIRED_FLAIRS = {"Article", "Artwork | Esports", "Bug", "Clips", "Complaint", "Discussion", "Match", "News", "Shoutout", "Video", "Bug | Esports", "Article | Esports", "Stream", "Stream | Esports", "Clips | Esports", "Complaint | Esports", "Discussion | Esports", "Match | Esports", "News | Esports", "Shoutout | Esports", "Video | Esports", "Screenshot | Esports", "Tool | Esports", "Workshop | Esports", "Interview", "Guides & Tips", "Guides & Tips | Esports", "Other | Esports", "Personal", "Personal | Esports", "Question | Esports", "Tool", "Interview | Esports"}
 POST_LIMIT = 15
 
 def time_ago(created_utc):
@@ -101,7 +101,6 @@ def determine_media_type(submission):
         "media_type": "link",
         "media_url": url
     }
-
 
 def fetch_relevant_posts():
     """
