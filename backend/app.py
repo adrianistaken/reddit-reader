@@ -126,6 +126,7 @@ def fetch_relevant_posts():
                 "media_url": media_info["media_url"],
                 "text_content": media_info.get("text_content", ""),
                 "url": submission.url,
+                "permalink": submission.permalink,
                 "score": submission.score,
                 "comments": submission.num_comments,
             })
@@ -135,23 +136,8 @@ def fetch_relevant_posts():
 
     return useful_posts
 
-def display_posts(posts):
-    """
-    Displays the relevant posts in a readable format.
-    """
-    print("\n📌 **Relevant Dota 2 Posts** 📌\n")
-    for idx, post in enumerate(posts, start=1):
-        print(f"{idx}. **{post['title']}**")
-        print(f"   🏷 Flair: {post['flair']} | 📆 Posted on {post['created_at']} | 👍 {post['score']} Upvotes | 💬 {post['comments']} Comments")
-        print(f"   🔗 [Reddit Link]({post['url']})\n")
-
 if __name__ == "__main__":
     posts = fetch_relevant_posts()
-    
-    if posts:
-        display_posts(posts)
-    else:
-        print("⚠️ No relevant posts found.")
 
 @app.route('/api/posts', methods=['GET'])
 def get_posts():

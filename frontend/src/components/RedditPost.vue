@@ -16,7 +16,7 @@
                 </div>
 
                 <!-- Post title -->
-                <a :href="post.url" target="_blank" class="card-title w-fit">
+                <a :href="`https://reddit.com${post.permalink}`" target="_blank" class="card-title w-fit">
                     <h2>{{ post.title }}</h2>
                 </a>
 
@@ -52,15 +52,12 @@
                     <img v-else-if="post.media_type === 'external_image'" :src="post.media_url"
                         class="max-w-full h-auto object-cover rounded-md" />
 
-                    <!-- ✅ Text Post -->
-                    <p v-else-if="post.media_type === 'text'" class="py-4 rounded-md">{{ post.text_content }}
+                    <!-- ✅ Ensure this only applies to text posts -->
+                    <p v-else-if="post.media_type === 'text'" class="py-4 rounded-md">
+                        {{ truncatedText }}
                     </p>
 
                     <!-- ✅ External Link -->
-                    <!-- <a v-else :href="post.media_url" target="_blank"
-                        class="py-4 bg-blue-500 text-white font-bold rounded-md hover:bg-blue-700">
-                        View Content
-                    </a> -->
                     <a v-else :href="post.media_url" target="_blank">
                         <button class="btn btn-warning">View Post</button>
                     </a>
@@ -108,11 +105,16 @@ const props = defineProps({
 
 const { post } = toRefs(props);
 
+const MAX_LENGTH = 300; // Set character limit
+
+// ✅ Function to truncate text safely
 const truncatePostText = (text, limit) => {
+    if (!text) return ""; // Prevent errors if text is missing
     return text.length > limit ? text.slice(0, limit) + "..." : text;
 };
 
-const truncatedText = computed(() => truncatePostText(post.value.selftext, 200));
+// ✅ Compute truncated text
+const truncatedText = computed(() => truncatePostText(post.value.text_content, MAX_LENGTH));
 </script>
 
 <style></style>
