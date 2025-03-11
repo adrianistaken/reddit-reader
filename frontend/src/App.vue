@@ -7,7 +7,7 @@ const posts = ref([]);
 // Fetch data from the Flask API when the component is mounted
 const fetchPosts = async () => {
     try {
-        const response = await fetch("http://127.0.0.1:5000/api/posts"); // Change this to your deployed backend URL when live
+        const response = await fetch("https://reddit-reader-ydlg.onrender.com/api/posts"); // Change this to your deployed backend URL when live
         posts.value = await response.json();
     } catch (error) {
         console.error("Error fetching posts:", error);
