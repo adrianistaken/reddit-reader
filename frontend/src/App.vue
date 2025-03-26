@@ -23,8 +23,9 @@ onMounted(fetchPosts);
         <h1>📌 Dota 2 Reddit Posts</h1>
 
         <div class="flex flex-col">
-            <div v-if="posts.length === 0" class="loading">
-                <p>Loading posts...</p>
+            <div v-if="posts.length === 0" class="p-10">
+                <div class="loading mb-5"></div>
+                <p>Loading posts... it takes about 40 seconds on first load..</p>
             </div>
 
             <div v-else>
