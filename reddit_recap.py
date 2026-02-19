@@ -13,6 +13,9 @@ from urllib.parse import urlparse
 import praw
 import praw.exceptions
 import praw.models
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ---------------------------------------------------------------------------
 # Constants
