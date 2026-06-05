@@ -8,7 +8,7 @@
   "steps": {
     "install": {
       "commands": [
-        "python -m pip install -r requirements.txt",
+        "python -m pip install -r backend/requirements.txt",
         "cd frontend && npm ci"
       ]
     },
