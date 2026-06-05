@@ -1,119 +1,143 @@
-# Reddit Recap
+# Reddit Match Thread Recap
 
-A local Python CLI tool that fetches a Reddit thread and outputs a compact, high-signal Markdown recap. Designed to be pasted into a Custom GPT for summarization.
+A private web app and CLI for turning Reddit Dota 2 match threads into compact markdown recaps for a Custom GPT workflow.
 
-## Setup
+The web app wraps the existing `reddit_recap.py` behavior so the generated markdown stays close to the local script output.
 
-### 1. Install dependencies
+## Features
+
+- HTTP Basic Auth for the whole hosted app
+- Paste a Reddit thread URL and generate markdown
+- Shows title, subreddit, source URL, and sampled comment count
+- Copy markdown to clipboard
+- Download a safe `.md` filename based on the Reddit title
+- No accounts, database, storage, or OpenAI API integration
+
+## Environment
+
+Copy `.env.example` and fill in real values:
 
 ```bash
+cp .env.example .env
+```
+
+Required:
+
+```env
+APP_USERNAME=
+APP_PASSWORD=
+REDDIT_CLIENT_ID=
+REDDIT_CLIENT_SECRET=
+REDDIT_USER_AGENT=
+```
+
+Optional if your Reddit app setup needs script-user credentials:
+
+```env
+REDDIT_USERNAME=
+REDDIT_PASSWORD=
+```
+
+Do not commit real `.env` files.
+
+## Local Web App
+
+Backend:
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
+uvicorn app.main:app --reload
 ```
 
-### 2. Create a Reddit API app
-
-1. Go to https://www.reddit.com/prefs/apps
-2. Click **"create another app…"**
-3. Select **"script"**
-4. Set a name (e.g., `reddit-recap`) and redirect URI to `http://localhost`
-5. Note your **client ID** (under the app name) and **client secret**
-
-### 3. Set environment variables
+Frontend, in another terminal:
 
 ```bash
-export REDDIT_CLIENT_ID="your_client_id"
-export REDDIT_CLIENT_SECRET="your_client_secret"
-export REDDIT_USER_AGENT="reddit-recap/1.0"  # optional
+cd frontend
+npm install
+npm run dev
 ```
 
-Or copy `.env.example` and load with your preferred method.
+Open `http://localhost:5173`. API requests proxy to `http://127.0.0.1:8000`.
 
-## Usage
+For production-like local serving from FastAPI:
 
-### Basic
+```bash
+cd frontend
+npm install
+npm run build
+
+cd ../backend
+source .venv/bin/activate
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+Open `http://localhost:8000`. Basic Auth protects the built frontend and `/api/recap`.
+
+## CLI Usage
+
+The original CLI still works:
 
 ```bash
 python reddit_recap.py "https://www.reddit.com/r/DotA2/comments/abc123/match_thread_ti_finals/"
 ```
 
-### Fast mode (smaller budget)
+Fast mode:
 
 ```bash
 python reddit_recap.py "https://www.reddit.com/r/DotA2/comments/abc123/..." --mode fast
 ```
 
-### Custom comment budget
+Custom sample budget:
 
 ```bash
 python reddit_recap.py "https://..." --max-comments 40 --top 15 --controversial 15 --new 10
 ```
 
-### Include JSON output
+Outputs are written to `./outputs/`.
+
+## API
+
+`POST /api/recap`
+
+Request:
+
+```json
+{
+  "url": "https://www.reddit.com/r/DotA2/comments/..."
+}
+```
+
+Response:
+
+```json
+{
+  "title": "Post title here",
+  "subreddit": "DotA2",
+  "url": "https://reddit.com/r/DotA2/comments/...",
+  "comment_count": 60,
+  "markdown": "# Reddit Recap...",
+  "filename": "2026-05-30_blast-slam-vii-thread.md"
+}
+```
+
+## Deployment
+
+Render works as a single Python web service:
+
+1. Add the environment variables from `.env.example`.
+2. Use a build command that installs Python and frontend dependencies, then builds Vue:
 
 ```bash
-python reddit_recap.py "https://..." --include-json
+pip install -r backend/requirements.txt && cd frontend && npm install && npm run build
 ```
 
-### Minimum comment length filter
+3. Use this start command:
 
 ```bash
-python reddit_recap.py "https://..." --min-len 50
+cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
-## Fast vs Deep Mode
-
-| | Fast | Deep |
-|---|---|---|
-| Default comment budget | 30 | 60 |
-| High-engagement section | No | Yes (top 5, with 1-2 replies each) |
-| API calls | ~4 | ~5 |
-
-Both modes sample the same three categories (top, controversial, new) and deduplicate across them.
-
-## Output
-
-Files are saved to `./outputs/` by default (configurable with `--outdir`).
-
-### Filename format
-
-```
-YYYY-MM-DD_[tournament-tag]_safe-thread-title.md
-```
-
-Examples:
-- `2026-02-18_the-international_ti-grand-finals-match-thread.md`
-- `2026-02-18_pgl-major_day-3-discussion.md`
-- `2026-02-18_general-dota-discussion-thread.md` (no tournament detected)
-
-Tournament tags are auto-detected from the thread title for major Dota 2 Valve events (The International, Majors, etc.).
-
-## CLI Reference
-
-```
-python reddit_recap.py <url> [options]
-
-Positional:
-  url                     Reddit thread URL
-
-Options:
-  --mode {fast,deep}      Sampling depth (default: deep)
-  --outdir DIR            Output directory (default: outputs)
-  --max-comments N        Total comment budget
-  --top N                 Override top comment count
-  --controversial N       Override controversial comment count
-  --new N                 Override new comment count
-  --include-json          Also write a JSON output file
-  --min-len N             Minimum comment body length (default: 0)
-```
-
-## Why does the extracted count differ from Reddit's comment count?
-
-Reddit's displayed comment count includes **all** comments: nested replies, deleted/removed comments, bot comments, and collapsed threads. This tool intentionally samples only a subset:
-
-- Only top-level comments (not deep reply chains)
-- Deleted/removed comments are skipped
-- Known bot accounts are filtered out
-- Stickied mod comments are excluded
-- The "more comments" trees are not expanded (to keep the tool fast)
-
-This is by design — the goal is a high-signal sample, not a complete dump.
+FastAPI serves both `/api/recap` and the built frontend from `frontend/dist`.

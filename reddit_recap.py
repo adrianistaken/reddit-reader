@@ -166,7 +166,7 @@ def resolve_budget(top, controversial, new, total):
 
 def validate_url(url):
     """Check that *url* looks like a Reddit thread link."""
-    if URL_PATTERN.match(url) or SHORT_URL_PATTERN.match(url):
+    if is_reddit_thread_url(url):
         return url
     print(
         "Error: URL does not look like a Reddit thread link.\n"
@@ -175,6 +175,11 @@ def validate_url(url):
         file=sys.stderr,
     )
     sys.exit(1)
+
+
+def is_reddit_thread_url(url):
+    """Return True if *url* looks like a Reddit thread link."""
+    return bool(URL_PATTERN.match(url or "") or SHORT_URL_PATTERN.match(url or ""))
 
 
 # ---------------------------------------------------------------------------
@@ -465,6 +470,73 @@ def format_json(metadata, top, controversial, new, high_engagement=None):
     if high_engagement:
         data["comments"]["high_engagement"] = high_engagement
     return json.dumps(data, indent=2, ensure_ascii=False)
+
+
+def generate_recap(
+    url,
+    mode="deep",
+    max_comments=None,
+    top=None,
+    controversial=None,
+    new=None,
+    min_len=0,
+):
+    """Fetch a Reddit thread and return recap data without writing files."""
+    if mode not in ("fast", "deep"):
+        raise ValueError("Mode must be 'fast' or 'deep'.")
+    if not is_reddit_thread_url(url):
+        raise ValueError("URL does not look like a Reddit thread link.")
+
+    reddit = init_reddit_client()
+    total_budget = max_comments
+    if total_budget is None:
+        total_budget = DEFAULT_DEEP_BUDGET if mode == "deep" else DEFAULT_FAST_BUDGET
+    top_n, cont_n, new_n = resolve_budget(top, controversial, new, total_budget)
+
+    submission = with_retry(lambda: reddit.submission(url=url))
+    metadata = fetch_thread_metadata(submission)
+
+    top_comments = with_retry(
+        lambda: fetch_comments_by_sort(reddit, url, "top", top_n, min_len=min_len)
+    )
+    cont_comments = with_retry(
+        lambda: fetch_comments_by_sort(
+            reddit, url, "controversial", cont_n, min_len=min_len
+        )
+    )
+    new_comments = with_retry(
+        lambda: fetch_comments_by_sort(reddit, url, "new", new_n, min_len=min_len)
+    )
+
+    top_comments, cont_comments, new_comments = deduplicate_comments(
+        top_comments, cont_comments, new_comments
+    )
+
+    high_engagement = []
+    if mode == "deep":
+        all_comments = top_comments + cont_comments + new_comments
+        high_engagement = with_retry(
+            lambda: fetch_high_engagement_comments(reddit, url, all_comments)
+        )
+
+    comment_count = len(top_comments) + len(cont_comments) + len(new_comments)
+    if comment_count == 0:
+        raise ValueError("No usable comments found for this Reddit thread.")
+
+    markdown = format_markdown(
+        metadata, top_comments, cont_comments, new_comments, high_engagement
+    )
+
+    return {
+        "metadata": metadata,
+        "top_comments": top_comments,
+        "controversial_comments": cont_comments,
+        "new_comments": new_comments,
+        "high_engagement": high_engagement,
+        "comment_count": comment_count,
+        "markdown": markdown,
+        "filename": generate_filename(metadata),
+    }
 
 
 # ---------------------------------------------------------------------------
