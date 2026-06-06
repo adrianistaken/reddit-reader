@@ -9,8 +9,8 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from reddit_recap import generate_recap, is_reddit_thread_url  # noqa: E402
-
+# from reddit_recap import generate_recap, is_reddit_thread_url  # noqa: E402
+from .reddit_recap import generate_recap, is_reddit_thread_url  # noqa: E402
 
 logger = logging.getLogger(__name__)
 APP_COMMENT_BUDGET = 60
