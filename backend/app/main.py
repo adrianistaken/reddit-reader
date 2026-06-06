@@ -25,6 +25,7 @@ allowed_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     *frontend_origins,
+    "aware-youth-production-dc75.up.railway.app"
 ]
 
 app = FastAPI(
