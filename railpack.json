@@ -7,7 +7,28 @@
   },
   "steps": {
     "install": {
+      "inputs": [
+        {
+          "step": "packages:mise"
+        }
+      ],
       "commands": [
+        {
+          "src": "requirements.txt",
+          "dest": "requirements.txt"
+        },
+        {
+          "src": "reddit_recap.py",
+          "dest": "reddit_recap.py"
+        },
+        {
+          "src": "backend",
+          "dest": "backend"
+        },
+        {
+          "src": "frontend",
+          "dest": "frontend"
+        },
         "python -m pip install -r requirements.txt",
         "cd frontend && npm ci"
       ]
@@ -20,6 +41,9 @@
       ],
       "commands": [
         "cd frontend && npm run build"
+      ],
+      "deployOutputs": [
+        "."
       ]
     }
   },
