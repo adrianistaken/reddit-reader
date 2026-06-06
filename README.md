@@ -26,6 +26,7 @@ Required:
 ```env
 APP_USERNAME=
 APP_PASSWORD=
+FRONTEND_ORIGIN=
 REDDIT_CLIENT_ID=
 REDDIT_CLIENT_SECRET=
 REDDIT_USER_AGENT=
@@ -61,6 +62,20 @@ npm run dev
 ```
 
 Open `http://localhost:5173`. API requests proxy to `http://127.0.0.1:8000`.
+
+If the frontend is deployed separately from the backend, set this on the frontend service:
+
+```env
+VITE_API_URL=https://your-backend-service.up.railway.app
+```
+
+And set this on the backend service:
+
+```env
+FRONTEND_ORIGIN=https://your-frontend-service.up.railway.app
+```
+
+Leave `VITE_API_URL` unset for local dev with the Vite proxy or for a single-service FastAPI deploy.
 
 For production-like local serving from FastAPI:
 

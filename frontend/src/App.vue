@@ -7,6 +7,7 @@ const error = ref('')
 const result = ref(null)
 const copied = ref(false)
 
+const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
 const canGenerate = computed(() => redditUrl.value.trim().length > 0 && !loading.value)
 
 async function generateMarkdown() {
@@ -16,7 +17,7 @@ async function generateMarkdown() {
   loading.value = true
 
   try {
-    const response = await fetch('/api/recap', {
+    const response = await fetch(`${API_URL}/api/recap`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

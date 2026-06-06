@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -15,6 +16,17 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 load_dotenv(ROOT_DIR / ".env")
 load_dotenv(ROOT_DIR / "backend" / ".env", override=False)
 
+frontend_origins = [
+    origin.strip().rstrip("/")
+    for origin in os.environ.get("FRONTEND_ORIGIN", "").split(",")
+    if origin.strip()
+]
+allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    *frontend_origins,
+]
+
 app = FastAPI(
     title="Reddit Match Thread Recap",
     dependencies=[Depends(require_basic_auth)],
@@ -22,9 +34,9 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["POST"],
+    allow_methods=["POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
